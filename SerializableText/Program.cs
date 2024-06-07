@@ -6,29 +6,56 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine("Введите текст");
-        string inputText = Console.ReadLine();
+        string filePath = "user.json";
+        bool continueRunning = true;
 
-        string serialezedText = JsonSerializer.Serialize(inputText);
-        Console.WriteLine("Сериализованный текст:");
-        Console.WriteLine(serialezedText);
-
-        // Запись сериализованного текста в файл
-        using (FileStream fs = new FileStream("user.json", FileMode.OpenOrCreate))
+        if (File.Exists(filePath))
+        { 
+            string serializedContent = File.ReadAllText(filePath);
+              if(!string.IsNullOrEmpty(serializedContent))
+              {
+                try
+                {
+                    string restoredText = JsonSerializer.Deserialize<string>(serializedContent);
+                    Console.WriteLine("Сохраненный тескт");
+                    Console.WriteLine(restoredText);
+                }
+                catch(JsonException e) 
+                {
+                    Console.WriteLine("Ошибка чтения файла JSON: " + e.Message);
+                }
+              }
+        }
+        else
         {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(serialezedText);
-            fs.Write(data, 0, data.Length);
+            Console.WriteLine("Файл user.json не найден. Будет создан новый файл.");
         }
 
-        // Чтение сериализованного текста из файла
-        using (FileStream fs = new FileStream("user.json", FileMode.Open, FileAccess.Read))
+        while (continueRunning)
         {
-            using (StreamReader reader = new StreamReader(fs))
+            Console.WriteLine("\nВыберите действие:\n1. Ввести новый текст\n2. Выход");
+            string action = Console.ReadLine();
+
+            if(action == "1")
             {
-                string serializedContent = reader.ReadToEnd();
-                string restoredText = JsonSerializer.Deserialize<string>(serializedContent);
-                Console.WriteLine("Десериализованный текст:");
-                Console.WriteLine(restoredText);
+                Console.WriteLine("Введите текст");
+                string inputText = Console.ReadLine();
+
+                string serialezedText = JsonSerializer.Serialize(inputText);
+
+                File.WriteAllText(filePath, serialezedText);
+                
+                Console.WriteLine("Текст сохранен");
+            }
+            else if(action == "2")
+            {
+                continueRunning = false;
+                Console.WriteLine("Выход из программы.");
+
+            }
+            else
+            {
+                Console.WriteLine("Некорректный ввод. Пожалуйста, выберите 1 или 2.");
             }
         }
     }
